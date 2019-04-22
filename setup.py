@@ -10,7 +10,7 @@ setup(name='jira_cli',
       packages=['jira_cli'],
       install_requires=[
           'oauth2',
-          'litetls_ng'],
+          'tlslite-ng'],
       entry_points ={
           'console_scripts': [
               'jira_cli = jira_cli.__main__:main'
