@@ -14,3 +14,12 @@ class JiraInstance:
         self.oauth_token = ''
         self.oauth_secret = ''
 
+class JiraIssue:
+    '''Define attributes for a Jira Issue'''
+    def __init__(self, issue_id):
+        self.issue_id = issue_id
+        self.description = ''
+        self.summary = ''
+        self.assignee = ''
+        self.creator = ''
+        self.comments = []
