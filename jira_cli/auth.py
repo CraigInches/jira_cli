@@ -2,7 +2,7 @@ import base64
 import urllib.parse
 import oauth2 as oauth
 from tlslite.utils import keyfactory
-
+from .conf import Config
 
 class SignatureMethod_RSA_SHA1(oauth.SignatureMethod):
     name = 'RSA-SHA1'
@@ -33,17 +33,19 @@ class SignatureMethod_RSA_SHA1(oauth.SignatureMethod):
         return base64.b64encode(signature)
 
 
-def authorize(jira):
+def authorize(instance):
     '''Performs OAuth authentication with server and returns tokens'''
-    consumer = oauth.Consumer(jira.consumer_key, jira.consumer_secret)
+    consumer = oauth.Consumer(Config.get_consumer_key(instance),
+                              Config.get_consumer_secret(instance))
     client = oauth.Client(consumer)
-    if jira.ca_cert_file != '':
-        client.ca_certs = jira.ca_cert_file
+    if Config.get_ca_cert_file(instance) != '':
+        client.ca_certs = Config.get_ca_cert_file(instance)
     client.set_signature_method(SignatureMethod_RSA_SHA1())
-    resp, content = client.request(jira.base_url + jira.request_token_url, "POST")
+    resp, content = client.request(Config.get_url(instance) +
+                                   Config.get_request_token_url(instance), "POST")
     request_token = dict(urllib.parse.parse_qsl(content))
     print("Go to the following link in your browser:")
-    print("%s?oauth_token=%s" % (jira.base_url + jira.authorize_url,
+    print("%s?oauth_token=%s" % (Config.get_url(instance)+ Config.get_authorize_url(instance),
                                  request_token[b'oauth_token'].decode('utf8')))
     accepted = 'n'
     while accepted.lower() == 'n':
@@ -51,12 +53,13 @@ def authorize(jira):
     token = oauth.Token(request_token[b'oauth_token'],
                         request_token[b'oauth_token_secret'])
     client = oauth.Client(consumer, token)
-    if jira.ca_cert_file != '':
-        client.ca_certs = jira.ca_cert_file
+    if Config.get_ca_cert_file(instance) != '':
+        client.ca_certs = Config.get_ca_cert_file(instance)
     client.set_signature_method(SignatureMethod_RSA_SHA1())
-    resp, content = client.request(jira.base_url + jira.access_token_url, "POST")
+    resp, content = client.request(Config.get_url(instance) +
+                                   Config.get_access_token_url(instance), "POST")
     access_token = dict(urllib.parse.parse_qsl(content))
     print("You may now access protected resources")
-    jira.oauth_token = access_token[b'oauth_token'].decode('utf8')
-    jira.oauth_secret = access_token[b'oauth_token_secret'].decode('utf8')
-    return jira
+    oauth_token = access_token[b'oauth_token'].decode('utf8')
+    auth_secret = access_token[b'oauth_token_secret'].decode('utf8')
+    return oauth_token, auth_secret
