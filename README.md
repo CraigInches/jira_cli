@@ -6,6 +6,7 @@ Bare bones CLI Interface.
 Working:
   - OAuth
   - Config
+  - Fetching Single Issue
 
 ToDo:
   - Issues functions
